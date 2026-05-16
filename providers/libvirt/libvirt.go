@@ -347,6 +347,7 @@ func (p *provider) CreateVM(config *vm.Config) error {
 		if err != nil {
 			return fmt.Errorf("libvirt: unable to parse domain configuration %s: %w", config.Name, err)
 		}
+		p.logger.Trace("parsed domain configuration", "name", domXML)
 	}
 
 	p.logger.Debug("creating domain", "xml", domXML)

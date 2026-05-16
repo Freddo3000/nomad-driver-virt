@@ -175,7 +175,7 @@ func TestVirtDriver(t *testing.T) {
 			},
 		}
 		must.NoError(t, task.EncodeConcreteDriverConfig(virtcfg))
-		vmName := vmNameFromTaskID(task.ID)
+		vmName := vmNameFromTaskConfig(task)
 
 		// Create all the needed mocks
 		ih := &mock_image_tools.StaticImageHandler{GetImageFormatResult: "tif"}
@@ -394,7 +394,7 @@ func TestVirtDriver(t *testing.T) {
 		virtcfg := testVirtTaskConfig(t, filepath.Join(dir, "images"))
 		task := testTaskConfig()
 		must.NoError(t, task.EncodeConcreteDriverConfig(virtcfg))
-		vmName := vmNameFromTaskID(task.ID)
+		vmName := vmNameFromTaskConfig(task)
 
 		// Create all the needed mocks
 		ih := &mock_image_tools.StaticImageHandler{GetImageFormatResult: "tif"}
@@ -556,7 +556,7 @@ func TestVirtDriver(t *testing.T) {
 		virtcfg := testVirtTaskConfig(t, filepath.Join(dir, "images"))
 		task := testTaskConfig()
 		must.NoError(t, task.EncodeConcreteDriverConfig(virtcfg))
-		vmName := vmNameFromTaskID(task.ID)
+		vmName := vmNameFromTaskConfig(task)
 
 		// Create all the needed mocks
 		ih := &mock_image_tools.StaticImageHandler{GetImageFormatResult: "tif"}
@@ -721,7 +721,7 @@ func TestVirtDriver(t *testing.T) {
 		virtcfg := testVirtTaskConfig(t, filepath.Join(dir, "images"))
 		task := testTaskConfig()
 		must.NoError(t, task.EncodeConcreteDriverConfig(virtcfg))
-		vmName := vmNameFromTaskID(task.ID)
+		vmName := vmNameFromTaskConfig(task)
 
 		// Create all the needed mocks
 		ih := &mock_image_tools.StaticImageHandler{GetImageFormatResult: "tif"}
@@ -882,7 +882,7 @@ func TestVirtDriver_Libvirt(t *testing.T) {
 	}
 
 	must.NoError(t, task.EncodeConcreteDriverConfig(virtcfg))
-	vmName := vmNameFromTaskID(task.ID)
+	vmName := vmNameFromTaskConfig(task)
 
 	libvirtProvider := libvirt.New(t.Context(), hclog.NewNullLogger(),
 		libvirt.WithConnectionURI(libvirt.TestURI))

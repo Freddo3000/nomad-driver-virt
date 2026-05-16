@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/nomad/client/lib/numalib/hw"
 	"github.com/hashicorp/nomad/client/taskenv"
 	"github.com/hashicorp/nomad/drivers/shared/eventer"
+	nomadstructs "github.com/hashicorp/nomad/nomad/structs"
 	"github.com/hashicorp/nomad/plugins/base"
 	"github.com/hashicorp/nomad/plugins/drivers"
 	"github.com/hashicorp/nomad/plugins/drivers/fsisolation"
@@ -287,7 +288,7 @@ func (d *VirtDriverPlugin) StopTask(taskID string, timeout time.Duration, signal
 	// Cancel the context for the task
 	handle.cancelFn()
 
-	vmname := vmNameFromTaskID(taskID)
+	vmname := vmNameFromTaskConfig(handle.taskConfig)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	virtualizer, err := d.providers.GetProviderForVM(ctx, vmname)
@@ -320,7 +321,7 @@ func (d *VirtDriverPlugin) DestroyTask(taskID string, force bool) error {
 	// Cancel the context for the task
 	handle.cancelFn()
 
-	vmname := vmNameFromTaskID(taskID)
+	vmname := vmNameFromTaskConfig(handle.taskConfig)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	virtualizer, err := d.providers.GetProviderForVM(ctx, vmname)
@@ -420,9 +421,15 @@ func (d *VirtDriverPlugin) ExecTask(taskID string, cmd []string, timeout time.Du
 // to help the operator identify the vms.
 //
 // The struct of the task ID is "allocID/taskName/UniqueID".
-func vmNameFromTaskID(taskID string) string {
-	ids := strings.Split(taskID, "/")
-	return strings.Join(ids[1:], "-")
+func vmNameFromTaskConfig(cfg *drivers.TaskConfig) string {
+	index := nomadstructs.AllocIndexFromName(cfg.AllocID, cfg.ID, cfg.TaskGroupName)
+	return fmt.Sprintf("%s-%s-%s-%s-%d",
+		cfg.Namespace,
+		cfg.JobName,
+		cfg.TaskGroupName,
+		cfg.Name,
+		index,
+	)
 }
 
 // createAllocFileMounts creates the mount configurations for the
@@ -487,7 +494,7 @@ func (d *VirtDriverPlugin) StartTask(cfg *drivers.TaskConfig) (_ *drivers.TaskHa
 
 	d.logger.Debug("starting task", "driver_cfg", hclog.Fmt("%+v\n", driverConfig))
 
-	taskName := vmNameFromTaskID(cfg.ID)
+	taskName := vmNameFromTaskConfig(cfg)
 
 	d.logger.Info("starting task", "name", taskName)
 
@@ -754,7 +761,7 @@ func (d *VirtDriverPlugin) RecoverTask(handle *drivers.TaskHandle) error {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	h := &taskHandle{
-		name:        vmNameFromTaskID(handle.Config.ID),
+		name:        vmNameFromTaskConfig(handle.Config),
 		logger:      d.logger.Named("handle").With("alloc-id", handle.Config.AllocID),
 		taskConfig:  taskState.TaskConfig,
 		startedAt:   taskState.StartedAt,
